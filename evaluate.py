@@ -1,3 +1,5 @@
+#John Shieh
+
 from __future__ import print_function
 import warnings
 warnings.filterwarnings('ignore')
@@ -29,29 +31,22 @@ from segmentation_models import Nestnet, Unet, Xnet
 from helper_functions import *
 from keras.utils import plot_model
 
+#saved model path
 model_path_idx = 1
 model_path = "trained_weights/ourdata/run_"+str(model_path_idx)+"/"
 exp_name="exp1"
 
+#load data
 x_test = np.load(os.path.join(config.DATA_DIR, "images_3.npy"))
 y_test = np.load(os.path.join(config.DATA_DIR, "masks_3.npy"))
 
-# #add change from RGB 3 channel to single channel
-# x_test = x_test[:,:,:,0]
-# x_test = np.expand_dims(x_test, axis=-1)
-
-# #add dimension to mask
-# y_test = np.expand_dims(y_test, axis=-1)
-
-#x_test, y_test = np.einsum('ijkl->iklj', x_test), np.einsum('ijkl->iklj', y_test)
-#y_test = np.array(y_test>0, dtype="int")[:,:,:,0:1]
 print(">> Test  data: {} | {} ~ {}".format(x_test.shape, np.min(x_test), np.max(x_test)))
 print(">> Test  mask: {} | {} ~ {}\n".format(y_test.shape, np.min(y_test), np.max(y_test)))
 
+#load saved model and evalute
 model = Xnet(backbone_name='resnet50', encoder_weights='imagenet', decoder_block_type='transpose', activation="softmax", classes=4)
 model.load_weights(os.path.join(model_path, exp_name+".h5"))
 model.compile('Adam', loss="categorical_crossentropy", metrics=['accuracy', mean_iou, dice_coef])
-
 eva = model.evaluate(x_test, y_test, batch_size=config.batch_size, verbose=config.verbose)
 
 print(eva)
